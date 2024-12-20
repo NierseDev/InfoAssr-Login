@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Web | Dashboard{% endblock %} 
+
+{% block body %}
+<div class="container">
+    <h1 class="text-center">User Dashboard</h1>
+    <h2>Hello, {{ session['FirstName'] }}!</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>FirstName</th>
+                <th>LastName</th>
+                <th>ContactNum</th>
+                <th>Address</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ session['Email'] }}</td>
+                <td>{{ session['FirstName'] }}</td>
+                <td>{{ session['LastName'] }}</td>
+                <td>{{ session['ContactNum'] }}</td>
+                <td>{{ session['Address'] }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="text-center">
+        <a class="btn btn-danger" style="color: white; background-color: red;" href="{{ url_for('logout') }}">Logout</a>
+    </div>
+</div>
+
+
+{% endblock %}

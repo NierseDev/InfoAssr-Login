@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Web | Registration{% endblock %} 
+
+{% block body %}
+<div class="d-flex justify-content-center">
+  <form id="registrationForm" enctype="multipart/form-data" action="/registration" method="post" autocomplete="off">
+    <div class="form-group">
+      <label for="Email">Email Address</label>
+      <input
+        type="email"
+        class="form-control"
+        id="Email"
+        name="Email"
+        aria-describedby="emailHelp"
+        placeholder="Enter Email"
+        autocomplete="off"
+      />
+      <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+    </div>
+    <div class="form-group">
+      <label for="Password">Password</label>
+      <input
+        type="password"
+        class="form-control"
+        id="Password"
+        name="Password"
+        placeholder="Enter Password"
+        autocomplete="new-password"
+      />
+    </div>
+    <div class="form-group">
+      <label for="PasswordPatterns">Password Requirements</label>
+      <ul id="PasswordPatterns">
+        <li class="text-muted" id="length">Must contain at least 8 characters</li>
+        <li class="text-muted" id="lowercase">Must contain at least one lowercase letter</li>
+        <li class="text-muted" id="uppercase">Must contain at least one uppercase letter</li>
+        <li class="text-muted" id="number">Must contain at least one number</li>
+        <li class="text-muted" id="special">Must contain at least one special character (!@#$%^&*).</li>
+      </ul>
+    </div>
+    <br>
+    <button type="submit" class="btn btn-primary mx-auto d-block w-50" id="submit">Submit</button>
+  </form>
+  <pre id="result" class="mt-3"></pre>
+  <br>
+  {% if message %}<h5 class="text-center p-2" style='color: {{color}}'>{{message}}</h5>{% endif %}
+</div>
+
+
+
+
+<!-- Automatic Reformatting of Contact Number Field -->
+<script>
+  document.getElementById('ContactNum').addEventListener('input', function (event) {
+    let input = event.target.value.replace(/\D/g, ''); // Remove all non-digit characters
+    if (input.length > 3 && input.length <= 6) {
+        input = input.slice(0, 3) + '-' + input.slice(3);
+    } else if (input.length > 6) {
+        input = input.slice(0, 3) + '-' + input.slice(3, 6) + '-' + input.slice(6, 10);
+    }
+    event.target.value = input;
+  });
+</script>
+
+<!-- Form Handling -->
+<script>
+  document.getElementById('registrationForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    submitForm();
+  });
+
+  function submitForm() {
+    const form = document.getElementById('registrationForm');
+    const formData = new FormData(form);
+    
+    fetch('/registration', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.text())
+    .then(data => console.log(data))
+    .catch(error => console.error('Error:', error));
+  }
+
+  document.getElementById('Password').addEventListener('input', function (event) {
+    let input = event.target.value;
+
+    if (input.length >= 8) {
+      document.getElementById('length').classList.remove('text-muted');
+      document.getElementById('length').classList.add('text-success');
+    } else {
+      document.getElementById('length').classList.remove('text-success');
+      document.getElementById('length').classList.add('text-muted');
+    }
+
+    if (input.match(/[a-z]/)) {
+      document.getElementById('lowercase').classList.remove('text-muted');
+      document.getElementById('lowercase').classList.add('text-success');
+    } else {
+      document.getElementById('lowercase').classList.remove('text-success');
+      document.getElementById('lowercase').classList.add('text-muted');
+    }
+
+    if (input.match(/[A-Z]/)) {
+      document.getElementById('uppercase').classList.remove('text-muted');
+      document.getElementById('uppercase').classList.add('text-success');
+    } else {
+      document.getElementById('uppercase').classList.remove('text-success');
+      document.getElementById('uppercase').classList.add('text-muted');
+    }
+
+    if (input.match(/[0-9]/)) {
+      document.getElementById('number').classList.remove('text-muted');
+      document.getElementById('number').classList.add('text-success');
+    } else {
+      document.getElementById('number').classList.remove('text-success');
+      document.getElementById('number').classList.add('text-muted');
+    }
+
+    if (input.match(/[!@#$%^&*]/)) {
+      document.getElementById('special').classList.remove('text-muted');
+      document.getElementById('special').classList.add('text-success');
+    } else {
+      document.getElementById('special').classList.remove('text-success');
+      document.getElementById('special').classList.add('text-muted');
+    }
+  });
+</script>
+
+{% endblock %}

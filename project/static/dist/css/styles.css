@@ -1,0 +1,14 @@
+.footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background-color: #007BFF;
+  border: 1px solid;
+}
+
+.footer>div {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-style: oblique;
+  color: #FFFFFF;
+  margin: 10px;
+}
