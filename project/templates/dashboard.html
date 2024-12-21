@@ -4,32 +4,85 @@
 {% block body %}
 <div class="container">
     <h1 class="text-center">User Dashboard</h1>
-    <h2>Hello, {{ session['FirstName'] }}!</h2>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Email</th>
-                <th>FirstName</th>
-                <th>LastName</th>
-                <th>ContactNum</th>
-                <th>Address</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>{{ session['Email'] }}</td>
-                <td>{{ session['FirstName'] }}</td>
-                <td>{{ session['LastName'] }}</td>
-                <td>{{ session['ContactNum'] }}</td>
-                <td>{{ session['Address'] }}</td>
-            </tr>
-        </tbody>
-    </table>
-
+    <h2>Hello, {{ session['user'] }}!</h2>
+    <div class="table-container">
+        <table id="data-table">
+            <thead>
+                <tr>
+                    {% for column in columns %}
+                    <th>{{ column }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% if rows %}
+                {% for row in rows %}
+                <tr>
+                    {% for cell in row %}
+                    <td>{{ cell }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="{{ columns|length }}" class="empty-table">No data available</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
     <div class="text-center">
         <a class="btn btn-danger" style="color: white; background-color: red;" href="{{ url_for('logout') }}">Logout</a>
     </div>
 </div>
 
+
+
+
+<!-- Scripts -->
+<script>
+    function fetchTableData(table_name) {
+        fetch('{{ url_for("fetch_table_data") }}?table_name=' + table_name)
+            .then(response => response.json())
+            .then(data => {
+                const columns = data.columns;
+                const rows = data.rows;
+
+                // Populate table headers
+                const thead = document.querySelector('#data-table thead tr');
+                thead.innerHTML = '';
+                columns.forEach(column => {
+                    const th = document.createElement('th');
+                    th.textContent = column;
+                    thead.appendChild(th);
+                });
+
+                // Populate table rows
+                const tbody = document.querySelector('#data-table tbody');
+                tbody.innerHTML = '';
+                if (rows.length > 0) {
+                    rows.forEach(row => {
+                        const tr = document.createElement('tr');
+                        row.forEach(cell => {
+                            const td = document.createElement('td');
+                            td.textContent = cell;
+                            tr.appendChild(td);
+                        });
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    const tr = document.createElement('tr');
+                    const td = document.createElement('td');
+                    td.textContent = 'No data available';
+                    td.colSpan = columns.length;
+                    td.className = 'empty-table';
+                    tr.appendChild(td);
+                    tbody.appendChild(tr);
+                }
+            });
+    }
+
+    // Fetch data for test table
+    fetchTableData('test-table');
+</script>
 
 {% endblock %}

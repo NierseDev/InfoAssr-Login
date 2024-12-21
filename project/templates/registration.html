@@ -41,47 +41,17 @@
     <br>
     <button type="submit" class="btn btn-primary mx-auto d-block w-50" id="submit">Submit</button>
   </form>
-  <pre id="result" class="mt-3"></pre>
-  <br>
-  {% if message %}<h5 class="text-center p-2" style='color: {{color}}'>{{message}}</h5>{% endif %}
+
+
 </div>
+{% if message %}<h5 class="text-center p-2"><mark style="background-color: {{ color }};">{{ message }}</mark></h5>{% endif %}
 
 
 
 
-<!-- Automatic Reformatting of Contact Number Field -->
-<script>
-  document.getElementById('ContactNum').addEventListener('input', function (event) {
-    let input = event.target.value.replace(/\D/g, ''); // Remove all non-digit characters
-    if (input.length > 3 && input.length <= 6) {
-        input = input.slice(0, 3) + '-' + input.slice(3);
-    } else if (input.length > 6) {
-        input = input.slice(0, 3) + '-' + input.slice(3, 6) + '-' + input.slice(6, 10);
-    }
-    event.target.value = input;
-  });
-</script>
-
+<!-- Scripts -->
 <!-- Form Handling -->
 <script>
-  document.getElementById('registrationForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-    submitForm();
-  });
-
-  function submitForm() {
-    const form = document.getElementById('registrationForm');
-    const formData = new FormData(form);
-    
-    fetch('/registration', {
-      method: 'POST',
-      body: formData
-    })
-    .then(response => response.text())
-    .then(data => console.log(data))
-    .catch(error => console.error('Error:', error));
-  }
-
   document.getElementById('Password').addEventListener('input', function (event) {
     let input = event.target.value;
 

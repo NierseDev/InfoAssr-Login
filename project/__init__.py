@@ -1,15 +1,43 @@
-# PACKAGES
+import secrets
+import pyrebase
+import mysql.connector
 from flask import Flask, render_template, request, url_for, session, redirect
 from flask_assets import Environment, Bundle
 
+
+# ---------------------------------------------------------------------------------------------------------------------- #
+
+
 # Database
-import mysql.connector
+def connectDB():
+    db = mysql.connector.connect(
+        host='localhost',
+        user='root',
+        database='test-login'
+    )
 
-# Security
-import hashlib
-import secrets
-from functools import wraps
+    return db
 
+# Firebase
+config = {
+    'apiKey': "AIzaSyDOAiIojcRjrvyLriKg_m-Wb3Qg81p4MUQ",
+    'authDomain': "infoassr-accesscontrol.firebaseapp.com",
+    'projectId': "infoassr-accesscontrol",
+    'storageBucket': "infoassr-accesscontrol.firebasestorage.app",
+    'messagingSenderId': "1006581544132",
+    'appId': "1:1006581544132:web:50078cb289d6a8f1008591",
+    'measurementId': "G-X9RZN36KG1",
+    'databaseURL': ''
+}
+
+firebase = pyrebase.initialize_app(config)
+auth = firebase.auth()
+
+
+# ---------------------------------------------------------------------------------------------------------------------- #
+
+
+# App
 app = Flask(__name__)
 assets = Environment(app)
 
@@ -25,15 +53,9 @@ css.build()
 # Secret Key
 app.secret_key = secrets.token_urlsafe(16)
 
-# Database
-def connectDB():
-    db = mysql.connector.connect(
-        host='localhost',
-        user='root',
-        database='adet'
-    )
 
-    return db
+# ---------------------------------------------------------------------------------------------------------------------- #
+
 
 # URL Routes:
 @app.route('/')
@@ -44,22 +66,15 @@ def login():
     elif request.method == 'POST':
         email = request.form.get('Email')
         password = request.form.get('Password')
-        password = hashlib.sha256(password.encode()).hexdigest()
 
-        conn = connectDB()
-        cur = conn.cursor()
-        cur.execute("SELECT UserID, Email, HASHEDPassword, Status FROM adet_user WHERE Email = %s AND HASHEDPassword = %s", (email, password)) #LIMIT 1
-        user = cur.fetchone()
-        
-        if user:
-            if user[3] in ['Banned', 'Deleted']:
-                return render_template('login.html', message="Account is Deleted or Banned")
-            else:
-                session['UserID'] = user[0]
-                session['Email'] = user[1]
-                return redirect(url_for('dashboard')), 301
-        else:
+        try:
+            user = auth.sign_in_with_email_and_password(email, password)
+            session['user'] = email
+
+            return redirect(url_for('dashboard'))
+        except:
             return render_template('login.html', message="Login Failed, Check Details!")
+            
         
 @app.route('/registration', methods=['GET', 'POST'])
 def registration():
@@ -68,51 +83,43 @@ def registration():
     elif request.method == 'POST':
         email = request.form.get('Email')
         password = request.form.get('Password')
-        password = hashlib.sha256(password.encode()).hexdigest()
-        fName = request.form.get('FirstName')
-        lName = request.form.get('LastName')
-        contactNum = request.form.get('ContactNum')
-        address = request.form.get('Address')
 
         try:
-            conn = connectDB()
-            cursor = conn.cursor()
-
-            query = "INSERT INTO adet_user (Email, HASHEDPassword, FirstName, LastName, ContactNum, Address) VALUES (%s, %s, %s, %s, %s, %s)"
-            values = (email, password, fName, lName, contactNum, address)
-
-            cursor.execute(query, values)
-            conn.commit()
-
+            auth.create_user_with_email_and_password(email, password)
             message = "User registered successfully!"
             color = '#70fa70'
         except(Exception):
             message = "Error: Failed to Register User!"
             color = '#a81b1b'
-        finally:
-            cursor.close()
-            conn.close()
         
         return render_template('registration.html', message=message, color=color)
     
 @app.route('/dashboard')
 def dashboard():
-    if 'UserID' not in session:
+    if 'user' not in session:
         return redirect(url_for('login'))
     
-    if request.args.get('logout') == 'True':
-        session.clear()
-        return redirect(url_for('home'))
-    
-    conn = connectDB()
-    cur = conn.cursor()
-    cur.execute("SELECT Email, FirstName, LastName, ContactNum, Address FROM adet_user WHERE UserID = %s", (session['UserID'],))
-    user = cur.fetchone()
-    
-    return render_template("dashboard.html", Email=user[0], FirstName=user[1], LastName=user[2], ContactNum=user[3], Address=user[4])
+    return render_template("dashboard.html")
+
+@app.route('/fetch_table_data')
+def fetch_table_data():
+    table_name = request.args.get('table_name')
+    columns = []
+    rows = []
+    if table_name:
+        connect = connectDB()
+        cursor = connect.cursor()
+        cursor.execute("SELECT * FROM "+table_name)
+        result = cursor.fetchall()
+        columns = [desc[0] for desc in cursor.description]
+        for row in result:
+            rows.append(list(row))
+        connect.close()
+
+    return {'columns': columns, 'rows': rows}
 
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('home'))
+    return redirect(url_for('login'))
 
